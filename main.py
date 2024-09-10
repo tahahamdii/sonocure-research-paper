@@ -98,28 +98,55 @@ def predict_treatment(example_data: dict) -> np.ndarray:
         return scaler_y.inverse_transform(normalized_prediction)
     except Exception as e:
         raise ValueError(f"Error during prediction: {str(e)}")
-# Route pour la prédiction
+# Route for treatment prediction
 @app.route('/predict_traitement', methods=['POST'])
 def predict_traitement():
-    print(f"Content-Type: {request.content_type}")  # Log content type
-
     if request.content_type != 'application/json':
         return jsonify({'error': 'Unsupported Media Type. Expected application/json'}), 415
 
     try:
         input_data = request.get_json()
-        print(f"Received JSON: {input_data}")  # Log received JSON
-
-        if input_data is None:
+        if not input_data:
             return jsonify({'error': 'No JSON data provided'}), 400
 
         result = predict_treatment(input_data)
         return jsonify({'prediction': result.tolist()})
     except Exception as e:
-        print(f"Error: {str(e)}")  # Log exception details
         return jsonify({'error': str(e)}), 500
-# Predict ultrasound
-ultrasound_model = load_model('model_detection/ultrasound_model_normalized.h5')
-input_scaler = joblib.load('model_detection/input_scaler.joblib')
-output_scaler = joblib.load('model_detection/output_scaler.joblib')
 
+# Preprocess input for ultrasound detection
+def preprocess_ultrasound_input(data: np.ndarray) -> np.ndarray:
+    try:
+        return input_scaler.transform(data)
+    except Exception as e:
+        raise ValueError(f"Error scaling ultrasound input: {str(e)}")
+
+# Prediction function for ultrasound model
+def predict_ultrasound(data: np.ndarray) -> np.ndarray:
+    try:
+        scaled_input = preprocess_ultrasound_input(data)
+        prediction = ultrasound_model.predict(scaled_input)
+        return output_scaler.inverse_transform(prediction)
+    except Exception as e:
+        raise ValueError(f"Error during ultrasound prediction: {str(e)}")
+
+# Route for ultrasound prediction
+@app.route('/predict_ultrasound', methods=['POST'])
+def predict_ultrasound():
+    if request.content_type != 'application/json':
+        return jsonify({'error': 'Unsupported Media Type. Expected application/json'}), 415
+
+    try:
+        input_data = request.get_json()
+        if not input_data:
+            return jsonify({'error': 'No JSON data provided'}), 400
+
+        input_array = np.array(input_data['input']).reshape(1, -1)
+        result = predict_ultrasound(input_array)
+        return jsonify({'prediction': result.tolist()})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Run the app
+if __name__ == '__main__':
+    app.run(debug=True)
