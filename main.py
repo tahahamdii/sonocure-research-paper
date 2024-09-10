@@ -24,12 +24,15 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 CORS(app)
 # traitement ultrason
-output_directory = "../Sonocure/src/assets/OutputImages"
+OUTPUT_DIR = "../Sonocure/src/assets/OutputImages"
 MODEL_PATH = 'model_traitement/my_model.pkl'
 ENCODER_PATH = 'model_traitement/encoder.pkl'
 SCALER_PATH = 'model_traitement/scaler.pkl'
 SCALERY_PATH = 'model_traitement/scaler_y.pkl'
 X_PREDICTION_PATH = 'model_traitement/X_prediction.csv'
+ULTRASOUND_MODEL_PATH = 'model_detection/ultrasound_model_normalized.h5'
+ULTRASOUND_INPUT_SCALER_PATH = 'model_detection/input_scaler.joblib'
+ULTRASOUND_OUTPUT_SCALER_PATH = 'model_detection/output_scaler.joblib'
 
 # Charger le modèle et les préprocesseurs
 treatment_model  = joblib.load(MODEL_PATH)
