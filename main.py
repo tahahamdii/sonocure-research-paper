@@ -69,14 +69,35 @@ def preprocess_input(example_data, X_prediction):
 
 
 # Fonction de prédiction
-def predict_treatment(example_data):
-    processed_data = preprocess_input(example_data, X_prediction)
-    normalized_prediction = treatment_model.predict(processed_data)
-    prediction = scaler_y.inverse_transform(normalized_prediction)
-    return prediction
+# Preprocessing function
+def preprocess_input(example_data: dict, X_prediction: pd.DataFrame) -> pd.DataFrame:
+    try:
+        example_df = pd.DataFrame([example_data])
+        X_combined = pd.concat([X_prediction, example_df], ignore_index=True)
+
+        # Encode categorical features
+        encoded_features = encoder.transform(X_combined[categorical_features])
+        encoded_columns = encoder.get_feature_names_out(categorical_features)
+        encoded_df = pd.DataFrame(encoded_features, columns=encoded_columns)
+        combined_df = pd.concat([X_combined.drop(columns=categorical_features), encoded_df], axis=1)
+
+        # Scale numeric features
+        combined_df[numeric_features] = scaler.transform(combined_df[numeric_features])
+
+        # Return the processed last row (input data)
+        return combined_df.iloc[[-1]]
+    except Exception as e:
+        raise ValueError(f"Error during preprocessing: {str(e)}")
 
 
-
+# Prediction function for treatment
+def predict_treatment(example_data: dict) -> np.ndarray:
+    try:
+        processed_data = preprocess_input(example_data, X_prediction)
+        normalized_prediction = treatment_model.predict(processed_data)
+        return scaler_y.inverse_transform(normalized_prediction)
+    except Exception as e:
+        raise ValueError(f"Error during prediction: {str(e)}")
 # Route pour la prédiction
 @app.route('/predict_traitement', methods=['POST'])
 def predict_traitement():
