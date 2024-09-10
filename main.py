@@ -33,19 +33,20 @@ X_PREDICTION_PATH = 'model_traitement/X_prediction.csv'
 ULTRASOUND_MODEL_PATH = 'model_detection/ultrasound_model_normalized.h5'
 ULTRASOUND_INPUT_SCALER_PATH = 'model_detection/input_scaler.joblib'
 ULTRASOUND_OUTPUT_SCALER_PATH = 'model_detection/output_scaler.joblib'
-
-# Charger le modèle et les préprocesseurs
-treatment_model  = joblib.load(MODEL_PATH)
+# Load models and scalers
+treatment_model = joblib.load(MODEL_PATH)
 encoder = joblib.load(ENCODER_PATH)
 scaler = joblib.load(SCALER_PATH)
 scaler_y = joblib.load(SCALERY_PATH)
+X_prediction = pd.read_csv(X_PREDICTION_PATH)
 
-# Définir les caractéristiques utilisées dans le modèle
+ultrasound_model = load_model(ULTRASOUND_MODEL_PATH)
+input_scaler = joblib.load(ULTRASOUND_INPUT_SCALER_PATH)
+output_scaler = joblib.load(ULTRASOUND_OUTPUT_SCALER_PATH)
+
+# Features
 numeric_features = ['Tumor Size (cm)', 'Age']
 categorical_features = ['Tumor Location', 'Sex', 'Tumor Type']
-
-# Charger X_prediction
-X_prediction = pd.read_csv(X_PREDICTION_PATH)
 
 # Fonction de prétraitement des données d'entrée
 def preprocess_input(example_data, X_prediction):
